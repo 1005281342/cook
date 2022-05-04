@@ -29,6 +29,9 @@ func init() {
 }
 
 func MakeFries() error {
+
+	const r = "jesonouyang"
+
 	var (
 		fsm   = easyfsm.NewFSM(BizMakeFries, StateInit)
 		state easyfsm.State
@@ -40,19 +43,48 @@ func MakeFries() error {
 
 	for i, ed := range []EventData{
 		// 1. 土豆清洗
-		{RinseEventName, p},
+		{RinseEventName, Param{
+			FoodParam:  FoodParam{Food: p},
+			EventParam: EventParam{Name: RinseEventName, FSM: fsm},
+		}},
 		// 2. 土豆切片
-		{SliceEventName, SliceParam{k, p}},
+		{SliceEventName, Param{
+			FoodParam:  FoodParam{Food: p},
+			ToolParam:  ToolParam{Tool: k},
+			EventParam: EventParam{Name: SliceEventName, FSM: fsm},
+		}},
 		// 3. 炸锅预热5分钟(TODO：众所周知，炸锅预热和1、2步是可以异步执行的)
-		{MakeFoodEventName, MakeFoodParam{af, &AFoodNil{}, 5 * time.Minute}},
+		{MakeFoodEventName, Param{
+			FoodParam:   FoodParam{Food: &AFoodNil{}},
+			ToolParam:   ToolParam{Tool: af, Time: 5 * time.Minute},
+			EventParam:  EventParam{Name: MakeFoodEventName, FSM: fsm},
+			NotifyParam: NotifyParam{Receiver: r, Message: "炸锅预热完成"},
+		}},
 		// 4. 炸10min
-		{MakeFoodEventName, MakeFoodParam{af, p, 10 * time.Minute}},
+		{MakeFoodEventName, Param{
+			FoodParam:   FoodParam{Food: p},
+			ToolParam:   ToolParam{Tool: af, Time: 10 * time.Minute},
+			EventParam:  EventParam{Name: MakeFoodEventName, FSM: fsm},
+			NotifyParam: NotifyParam{Receiver: r, Message: "1-薯条已炸10分钟"},
+		}},
 		// 5. 加油 20-30ml
-		{AddSeasoningEventName, AddSeasoningParam{Oil, p, 30}},
+		{AddSeasoningEventName, Param{
+			FoodParam:      FoodParam{Food: p},
+			SeasoningParam: SeasoningParam{Seasoning: Oil, Amount: 30},
+			EventParam:     EventParam{Name: AddSeasoningEventName, FSM: fsm},
+		}},
 		// 6. 晃动锅体以使薯条受热均匀
-		{WaggleEventName, WaggleParam{af}},
+		{WaggleEventName, Param{
+			ToolParam:  ToolParam{Tool: af},
+			EventParam: EventParam{Name: WaggleEventName, FSM: fsm},
+		}},
 		// 7. 继续炸10min
-		{MakeFoodEventName, MakeFoodParam{af, p, 10 * time.Minute}},
+		{MakeFoodEventName, Param{
+			FoodParam:   FoodParam{Food: p},
+			ToolParam:   ToolParam{Tool: af, Time: 10 * time.Minute},
+			EventParam:  EventParam{Name: MakeFoodEventName, FSM: fsm},
+			NotifyParam: NotifyParam{Receiver: r, Message: "2-薯条已炸10分钟"},
+		}},
 	} {
 		state, err = fsm.Call(ed.Name, easyfsm.WithData(ed.Data))
 		if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/1005281342/cook"
 )
@@ -11,6 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	time.Sleep(time.Second)
 	log.Println("薯条制作完成")
 	//OUT:
 	//2022/05/03 23:23:33 食物:potato 清洗中

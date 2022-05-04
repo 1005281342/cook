@@ -19,13 +19,13 @@ const (
 var rinseEntity = easyfsm.NewEventEntity(
 	RinseEventName,
 	func(opt *easyfsm.Param) (easyfsm.State, error) {
-		param, ok := opt.Data.(Food)
+		param, ok := opt.Data.(Param)
 		if !ok {
-			return StateFailed, fmt.Errorf("%+v不是`Food`类型", opt.Data)
+			return StateFailed, fmt.Errorf("%+v不是`Param`类型", opt.Data)
 		}
-		log.Printf("食物:%s 清洗中\n", param.Name())
+		log.Printf("食物:%s 清洗中\n", param.FoodParam.Food.Name())
 		time.Sleep(2 * time.Second) // TODO: 测试值，后续根据实际情况调整
-		log.Printf("食物:%s 清洗完成\n", param.Name())
+		log.Printf("食物:%s 清洗完成\n", param.FoodParam.Food.Name())
 		return StateRinsed, nil
 	},
 )
@@ -33,12 +33,11 @@ var rinseEntity = easyfsm.NewEventEntity(
 var sliceEntity = easyfsm.NewEventEntity(
 	SliceEventName,
 	func(opt *easyfsm.Param) (easyfsm.State, error) {
-		param, ok := opt.Data.(SliceParam)
+		param, ok := opt.Data.(Param)
 		if !ok {
-			return StateFailed, fmt.Errorf("%+v不是`SliceParam`类型", opt.Data)
+			return StateFailed, fmt.Errorf("%+v不是`Param`类型", opt.Data)
 		}
-		param.Tool.Slice(param.Food)
-		time.Sleep(2 * time.Second) // TODO: 测试值，后续根据实际情况调整
+		param.Tool.Slice(param.FoodParam.Food)
 		return StateSliced, nil
 	},
 )
@@ -46,27 +45,27 @@ var sliceEntity = easyfsm.NewEventEntity(
 var makeFoodEntity = easyfsm.NewEventEntity(
 	MakeFoodEventName,
 	func(opt *easyfsm.Param) (easyfsm.State, error) {
-		param, ok := opt.Data.(MakeFoodParam)
+		param, ok := opt.Data.(Param)
 		if !ok {
-			return StateFailed, fmt.Errorf("%+v不是`MakeFoodParam`类型", opt.Data)
+			return StateFailed, fmt.Errorf("%+v不是`Param`类型", opt.Data)
 		}
-		if param.Time <= 0 {
+		if param.ToolParam.Time <= 0 {
 			return StateFailed, fmt.Errorf("制作时长不符合要求")
 		}
-		param.Tool.Handle(param.Food, param.Time)
+		param.ToolParam.Tool.Handle(param.FoodParam.Food, param.ToolParam.Time)
 		time.Sleep(param.Time)
 		return StateMade, nil
-	},
+	}, easyfsm.WithObservers(Notify{}),
 )
 
 var addSeasoningEntity = easyfsm.NewEventEntity(
 	AddSeasoningEventName,
 	func(opt *easyfsm.Param) (easyfsm.State, error) {
-		param, ok := opt.Data.(AddSeasoningParam)
+		param, ok := opt.Data.(Param)
 		if !ok {
-			return StateFailed, fmt.Errorf("%+v不是`AddSeasoningParam`类型", opt.Data)
+			return StateFailed, fmt.Errorf("%+v不是`Param`类型", opt.Data)
 		}
-		log.Printf("给 %s 加 %dml %s", param.Food.Name(), param.Amount, param.Seasoning)
+		log.Printf("给 %s 加 %dml %s", param.FoodParam.Food.Name(), param.SeasoningParam.Amount, param.SeasoningParam.Seasoning)
 		return StateMade, nil
 	},
 )
@@ -74,12 +73,11 @@ var addSeasoningEntity = easyfsm.NewEventEntity(
 var waggleEntity = easyfsm.NewEventEntity(
 	WaggleEventName,
 	func(opt *easyfsm.Param) (easyfsm.State, error) {
-		param, ok := opt.Data.(WaggleParam)
-
+		param, ok := opt.Data.(Param)
 		if !ok {
-			return StateFailed, fmt.Errorf("%+v不是`AddSeasoningParam`类型", opt.Data)
+			return StateFailed, fmt.Errorf("%+v不是`Param`类型", opt.Data)
 		}
-		param.Tool.Waggle()
+		param.ToolParam.Tool.Waggle()
 		return StateMade, nil
 	},
 )

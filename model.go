@@ -6,25 +6,36 @@ import (
 	"github.com/wuqinqiang/easyfsm"
 )
 
-type SliceParam struct {
-	Tool
+type FoodParam struct {
 	Food
 }
 
-type MakeFoodParam struct {
+type ToolParam struct {
 	Tool
-	Food
 	Time time.Duration
 }
 
-type AddSeasoningParam struct {
+type SeasoningParam struct {
 	Seasoning
-	Food
 	Amount int // 单位ml
 }
 
-type WaggleParam struct {
-	Tool
+type NotifyParam struct {
+	Receiver string
+	Message  string
+}
+
+type EventParam struct {
+	Name easyfsm.EventName
+	*easyfsm.FSM
+}
+
+type Param struct {
+	FoodParam
+	ToolParam
+	SeasoningParam
+	NotifyParam
+	EventParam
 }
 
 type EventData struct {
